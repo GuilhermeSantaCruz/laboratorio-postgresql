@@ -642,35 +642,113 @@ order by
 select
 	instrutor.nome as instrutor,
 	count(curso.idcurso) as quantidade_cursos,
-	avg(curso.preco) as preco_medio,
-	from 
+	avg(curso.preco) as preco_medio
+from 
 	curso
 left outer join
 	instrutor on curso.idinstrutor = instrutor.idinstrutor
 group by
 	instrutor.nome
-having
-	avg(curso.preco) >
 order by
 	avg(curso.preco) desc;
 
 
+                                 
+-- Quero uma consulta que mostre, para cada curso:
 
+-- nome do curso;
 -- nome da categoria;
--- quantidade de cursos;
--- quantidade de alunos diferentes matriculados;
--- preço médio dos cursos;
--- uma coluna perfil:
--- Condição	Perfil
--- nenhum aluno matriculado	Sem movimento
--- 1 ou 2 alunos	Pequena
--- 3 ou mais alunos	Grande
--- Todas as categorias devem aparecer.
--- Ordene pela quantidade de alunos, da maior para a menor.
+-- quantidade de alunos diferentes matriculados naquele curso.
+-- Regras
+-- Todos os cursos devem aparecer, inclusive aqueles que ainda não possuem nenhuma matrícula.
+-- Se um curso não tiver alunos, a quantidade deve aparecer como 0.
+-- Ordene da maior quantidade de alunos para a menor.
+-- Em caso de empate, ordene pelo nome do curso em ordem alfabética.
 
 select
+	curso.nome as curso,
 	categoria_curso.nome as categoria,
-	count()
+	count(distinct(matricula.idaluno)) as quantidade_matriculas
+from
+	curso
+left outer join
+	categoria_curso on curso.idcategoria = categoria_curso.idcategoria 
+left outer join
+	matricula on curso.idcurso = matricula.idcurso
+group by
+	categoria_curso.nome, curso.nome
+order by
+	count(distinct(matricula.idaluno)) desc, curso.nome asc;
+
+
+
+-- Na plataforma_cursos, quero uma consulta que mostre cada categoria de curso com:
+
+-- nome da categoria;
+-- quantidade de cursos daquela categoria;
+-- quantidade de alunos diferentes matriculados nos cursos daquela categoria;
+-- nota média dos alunos daquela categoria.
+-- Regras
+-- Todas as categorias devem aparecer, inclusive aquelas que eventualmente não tenham cursos ou matrículas.
+-- A quantidade de alunos deve contar alunos diferentes (DISTINCT).
+-- A nota média deve considerar somente as notas existentes — lembre-se do comportamento do AVG com NULL.
+-- Ordene pela nota média, da maior para a menor.
+-- Em caso de empate, ordene pelo nome da categoria em ordem alfabética.
+select 
+	categoria_curso.nome as categoria,
+	count(distinct(curso.idcurso)) as quantidade_cursos,
+	count(distinct(matricula.idaluno)) as alunos_matriculados,
+	avg(matricula.nota) as nota_media
+from
+	categoria_curso
+left outer join
+	curso on categoria_curso.idcategoria = curso.idcategoria
+left outer join
+	matricula on curso.idcurso = matricula.idcurso
+group by
+	categoria_curso.nome
+order by
+	avg(matricula.nota) desc, categoria_curso.nome asc;	
+
+
+-- Na plataforma_cursos, faça uma consulta que mostre cada aluno com:
+
+-- nome do aluno;
+-- cidade;
+-- quantidade de cursos diferentes em que está matriculado;
+-- quantidade de cursos concluídos;
+-- nota média considerando as notas que ele possui.
+-- Regras
+-- Todos os alunos devem aparecer, inclusive alunos sem nenhuma matrícula.
+-- A quantidade de cursos deve contar cursos diferentes.
+-- A quantidade de cursos concluídos deve considerar apenas matrículas cujo status seja Concluido.
+-- A nota média deve ignorar NULL naturalmente.
+-- Ordene pela nota média, da maior para a menor.
+-- Em caso de empate, ordene pelo nome do aluno em ordem alfabética.
+select
+	aluno.nome as aluno,
+	cidade.nome as cidade,
+	count(distinct(matricula.idcurso)) as cursos_matriculados,
+	count(
+		distinct case 
+			when matricula.status = 'Concluido' then matricula.idcurso
+			else null
+		end 
+	)as cursos_concluidos,	
+	avg(matricula.nota) as nota_media
+from
+	aluno
+left outer join
+	cidade on aluno.idcidade = cidade.idcidade
+left outer join
+	matricula on aluno.idaluno = matricula.idaluno
+group by
+	aluno.nome, cidade.nome
+order by
+	avg(matricula.nota) desc, aluno.nome asc;
+
+
+
 
 
 
