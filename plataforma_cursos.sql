@@ -750,8 +750,37 @@ order by
 
 
 
+-- Nome do curso.
+-- Nome do instrutor responsável.
+-- Quantidade de alunos distintos matriculados.
+-- Quantidade de alunos distintos que concluíram o curso.
+-- Regras
+-- Todos os cursos devem aparecer, mesmo aqueles sem matrículas.
+-- A contagem de alunos deve considerar alunos distintos.
+-- Para contar os alunos que concluíram o curso, considere somente matrículas com status 'Concluido'.
+-- Cursos sem alunos devem apresentar zero nas contagens.
+-- Ordene pela quantidade de alunos que concluíram o curso, em ordem decrescente; em caso de empate, pelo nome do curso em ordem crescente.
 
-
+select
+	curso.nome as curso,
+	instrutor.nome as instrutor,
+	count(distinct(matricula.idaluno)) as alunos_matriculados,
+	count(
+		distinct case
+			when matricula.status = 'Concluido' then matricula.idaluno
+			else null
+		end		
+	) as alunos_cursos_concluidos
+from
+	curso
+left outer join
+	instrutor on curso.idinstrutor = instrutor.idinstrutor
+left outer join
+	matricula on curso.idcurso = matricula.idcurso
+group by
+	curso.nome, instrutor.nome
+order by
+	alunos_cursos_concluidos desc, curso.nome asc;
 
 
 
